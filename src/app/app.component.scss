@@ -1,0 +1,30 @@
+.yahtzee {
+    td {
+        border: 1px solid black;
+        padding: 3px;
+        &:first-child {
+            span {
+                vertical-align: middle;
+                &:nth-child(2) {
+                    font-size: 64%;
+                    width: 33%;
+                    float: right;
+                    text-align: center;
+                }
+            } 
+        }
+
+        &:nth-child(2), &:nth-child(3) {
+            text-align: center;
+        }
+
+
+    }
+
+    .header {
+        td {
+            font-weight: bold;
+            background-color: lightgray;
+        }
+    }
+}
