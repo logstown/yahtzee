@@ -3,10 +3,92 @@ import * as _ from 'lodash';
 export class Yahtzee {
     upperSection: UpperSection;
     lowerSection: LowerSection;
+    dice: Die[];
+    possibleScores: Scores;
+    rolls: number;
+    isRolling: boolean;
 
     constructor() {
         this.upperSection = new UpperSection();
         this.lowerSection = new LowerSection();
+        this.dice = [new Die(), new Die(), new Die(), new Die(), new Die()];
+        this.possibleScores = new Scores();
+        this.rolls = 0;
+        this.isRolling = false;
+    }
+
+    initDice() {
+        this.dice = [new Die(), new Die(), new Die(), new Die(), new Die()];
+        this.possibleScores = new Scores();
+        this.rolls = 0;
+    }
+
+    async rollDice(ms: number = 200) {
+        this.isRolling = true;
+        const promises = _.chain(this.dice)
+            .reject('saved')
+            .map((die, i) =>  die.roll(ms+(ms*i)))
+            .value();
+
+        await Promise.all(promises);
+        this._calculatePossibleScores();
+        this.rolls++;
+
+        this.isRolling = false;
+    }
+
+    clearDiceSelection() {
+        this.dice = _.map(this.dice, x => {
+            x.saved = false;
+            return x;
+        })
+    }
+
+    private _calculatePossibleScores() {
+        this.upperSection.numberRolls.forEach(numberRoll => {
+            (this.possibleScores as any)[numberRoll.title] = _.sumBy(this.dice, die => {
+                return die.value == numberRoll.score ? (die.value || 0) : 0;
+            })
+        });
+    
+        const totalDiceValue = _.sumBy(this.dice, x => (x.value || 0));
+        const diceCounts = _.chain(this.dice).countBy('value').values().sortBy().value();
+    
+        this.possibleScores.threeOfAKind = 
+        this.possibleScores.fourOfAKind = 
+        this.possibleScores.yahtzee = 
+        this.possibleScores.fullHouse = 
+        this.possibleScores.chance =
+        this.possibleScores.smStraight = 
+        this.possibleScores.lgStraight = 0;
+    
+        if ((_.max(diceCounts) || 0) >= 3) {
+            this.possibleScores.threeOfAKind = totalDiceValue
+        }
+        if ((_.max(diceCounts) || 0) >= 4) {
+            this.possibleScores.fourOfAKind = totalDiceValue;
+        }
+        if ((_.max(diceCounts) || 0) >= 5) {
+            this.possibleScores.yahtzee = this.lowerSection.yahtzee.score;
+        }
+        if (_.isEqual(diceCounts, [2, 3])) {
+            this.possibleScores.fullHouse = this.lowerSection.fullHouse.score;
+        }
+        this.possibleScores.chance = totalDiceValue;
+    
+        const diceArray = _.map(this.dice, 'value');
+        const smStraights = [[1, 2, 3, 4], [2, 3, 4, 5], [3, 4, 5, 6]];
+        const lgStraights = [[1, 2, 3, 4, 5], [2, 3, 4, 5, 6]];
+    
+        const gotASmStraight = smStraights.some(x => !_.difference(x, diceArray).length);
+        const gotALgStraight = lgStraights.some(x => !_.difference(x, diceArray).length);
+    
+        if (gotASmStraight) {
+            this.possibleScores.smStraight = this.lowerSection.smStraight.score;
+        }
+        if (gotALgStraight) {
+            this.possibleScores.lgStraight = this.lowerSection.lgStraight.score;
+        }
     }
 }
 
@@ -42,10 +124,6 @@ export class LowerSection {
     lgStraight: Roll;
     yahtzee: Roll;
     chance: Roll;
-    yahtzeeBonus: {
-        count: number;
-        score?: number;
-    };
 
     constructor() {
         this.threeOfAKind = {
@@ -83,9 +161,6 @@ export class LowerSection {
             title: 'Chance',
             howToScore: 'Score total of all dice'
         }
-        this.yahtzeeBonus = {
-            count: 0
-        }
     }
 }
 
@@ -96,14 +171,32 @@ export interface Roll {
     score?: number;
 }
 
-export interface Die {
-    id: number;
+export class Die {
     value?: number;
     saved: boolean;
+    rotated: number;
+
+    constructor() {
+        this.saved = false;
+        this.rotated = 0;
+    }
+
+    async roll(ms?: number) {
+        var startTime = Date.now();
+        while ((Date.now() - startTime) < (ms || 1000)) {
+            this.value = Math.floor((Math.random() * 6) + 1);
+            await new Promise(resolve => setTimeout(resolve, 75));
+        }
+
+        this.rotated = Math.floor(Math.random() *4) * 90;
+    }
+
+    toggleSave() {
+        this.saved = !this.saved;
+    }
 }
 
-export class Player {
-    name: string;
+export class Scores {
     aces?: number;
     twos?: number;
     threes?: number;
@@ -116,12 +209,11 @@ export class Player {
     smStraight?: number;
     lgStraight?: number;
     yahtzee?: number;
-    chance?: number;
     yahtzeeBonus: string[];
+    chance?: number;
 
-    constructor(name: string) {
-        this.name = name;
-        this.yahtzeeBonus = [];
+    constructor() {
+        this.yahtzeeBonus = []
     }
 
     get upperTotal() {
@@ -155,7 +247,25 @@ export class Player {
         return this.upperTotalWithBonus + this.lowerTotal;
     }
 
-    getNumberRollScore(roll: Roll) {
-        return (this as any)[roll.title];
+    get isComplete(): boolean {
+        return _.keys(this).length === 14;
+    }
+
+    getNumberRollScore(rollId: string) {
+        return (this as any)[rollId];
+    }
+}
+
+export class Player {
+    name: string;
+    scores: Scores;
+
+    constructor(name: string) {
+        this.name = name;
+        this.scores = new Scores();
+    }
+
+    get isComplete() {
+        return this.scores.isComplete;
     }
 }

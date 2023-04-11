@@ -2,7 +2,9 @@
     td {
         border: 1px solid black;
         padding: 3px;
+        text-align: center;
         &:first-child {
+            text-align: left;
             span {
                 vertical-align: middle;
                 &:nth-child(2) {
@@ -14,17 +16,55 @@
             } 
         }
 
-        &:nth-child(2), &:nth-child(3) {
-            text-align: center;
+        &:not(:first-child):not(:nth-child(2)) {
+
         }
 
-
+        .possible {
+            color: gray;
+            cursor: pointer;
+        }
     }
 
+    
     .header {
         td {
             font-weight: bold;
             background-color: lightgray;
         }
+
+        .active {
+            background-color: aquamarine;
+        }
     }
+    
+
+}
+
+.dice {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    max-width: 401px;
+    margin-top:20px;
+}
+
+.die {
+    width: 100px;
+    border: 10px solid white;
+    border-radius: 24px;
+}
+
+.die-selected {
+    border: 10px solid green;
+    border-radius: 24px;
+}
+
+.right-side {
+    width: 100%;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 30px;
 }

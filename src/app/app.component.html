@@ -1,26 +1,28 @@
-<h1>Yahtzee</h1>
-
 <div style="display: flex; width: 100%">
   <table class="yahtzee">
     <tr class="header">
       <td>UPPER SECTION</td>
       <td>HOW TO SCORE</td>
-      <td *ngFor="let player of players">{{player.name}}</td>
+      <td *ngFor="let player of players; let i=index;" [class.active]="startedGame && i === activeIdx">{{player.name}}</td>
     </tr>
     <tr *ngFor="let roll of yahtzee.upperSection.numberRolls">
       <td>
         <span style="text-transform: capitalize;">{{roll.title}}</span> <span>{{roll.subTitle}}</span>
       </td>
       <td>{{roll.howToScore}}</td>
-      <td *ngFor="let player of players">
-        <span style="font-weight: bold;">{{player.getNumberRollScore(roll)?.toString()}}</span>
-        <span *ngIf="!player.getNumberRollScore(roll)" style="color: gray;" (click)="acceptScore(player, roll)">{{possible.getNumberRollScore(roll)?.toString()}}</span>
+      <td *ngFor="let player of players; let i=index;">
+        <span style="font-weight: bold;">{{player.scores.getNumberRollScore(roll.title)}}</span>
+        <span *ngIf="i === activeIdx && player.scores.getNumberRollScore(roll.title) === undefined" 
+          class="possible" 
+          (click)="acceptScore(player, roll.title)">
+            {{this.yahtzee.possibleScores.getNumberRollScore(roll.title)}}
+        </span>
       </td>
     </tr>
     <tr class="header">
       <td>TOTAL</td>
-      <td>---></td>
-      <td *ngFor="let player of players">{{player.upperTotal}}</td>
+      <td style="font-size: 150%;">→</td>
+      <td *ngFor="let player of players">{{player.scores.upperTotal}}</td>
     </tr>
     <tr>
       <td>
@@ -28,15 +30,15 @@
       </td>
       <td>{{yahtzee.upperSection.bonus.howToScore}}</td>
       <td *ngFor="let player of players">
-        <span *ngIf="player.gotBonus">35</span>
+        <span *ngIf="player.scores.gotBonus">35</span>
       </td>
     </tr>
     <tr class="header">
       <td>
         <span>TOTAL</span> <span>Of Upper Section</span>
       </td>
-      <td>---></td>
-      <td *ngFor="let player of players">{{player.upperTotalWithBonus}}</td>
+      <td style="font-size: 150%;">→</td>
+      <td *ngFor="let player of players">{{player.scores.upperTotalWithBonus}}</td>
     </tr>
     <tr class="header">
       <td>LOWER SECTION</td>
@@ -48,85 +50,125 @@
         <span>{{yahtzee.lowerSection.threeOfAKind.title}}</span> <span>{{yahtzee.lowerSection.threeOfAKind.subTitle}}</span>
       </td>
       <td>{{yahtzee.lowerSection.threeOfAKind.howToScore}}</td>
-      <td *ngFor="let player of players">{{player.threeOfAKind?.toString() || possible.threeOfAKind?.toString()}}</td>
+      <td *ngFor="let player of players; let i=index;" (click)="acceptScore(player, 'threeOfAKind')">
+        <span style="font-weight: bold;">{{player.scores.threeOfAKind}}</span>
+        <span *ngIf="i === activeIdx && player.scores.threeOfAKind===undefined" class="possible">{{yahtzee.possibleScores.threeOfAKind}}</span>
+      </td>
     </tr>
     <tr>
       <td>
         <span>{{yahtzee.lowerSection.fourOfAKind.title}}</span> <span>{{yahtzee.lowerSection.fourOfAKind.subTitle}}</span>
       </td>
       <td>{{yahtzee.lowerSection.fourOfAKind.howToScore}}</td>
-      <td *ngFor="let player of players">{{player.fourOfAKind?.toString() || possible.fourOfAKind?.toString()}}</td>
+      <td *ngFor="let player of players; let i=index;" (click)="acceptScore(player, 'fourOfAKind')">
+        <span style="font-weight: bold;">{{player.scores.fourOfAKind}}</span>
+        <span *ngIf="i === activeIdx && player.scores.fourOfAKind === undefined" class="possible">{{yahtzee.possibleScores.fourOfAKind}}</span>
+      </td>
     </tr>
     <tr>
       <td>
         <span>{{yahtzee.lowerSection.fullHouse.title}}</span> <span>{{yahtzee.lowerSection.fullHouse.subTitle}}</span>
       </td>
       <td>{{yahtzee.lowerSection.fullHouse.howToScore}}</td>
-      <td *ngFor="let player of players">{{player.fullHouse?.toString() || possible.fullHouse?.toString()}}</td>
+      <td *ngFor="let player of players; let i=index;" (click)="acceptScore(player, 'fullHouse')">
+        <span style="font-weight: bold;">{{player.scores.fullHouse}}</span>
+        <span *ngIf="i === activeIdx && player.scores.fullHouse === undefined" class="possible">{{yahtzee.possibleScores.fullHouse}}</span>
+      </td>
     </tr>
     <tr>
       <td>
         <span>{{yahtzee.lowerSection.smStraight.title}}</span> <span>{{yahtzee.lowerSection.smStraight.subTitle}}</span>
       </td>
       <td>{{yahtzee.lowerSection.smStraight.howToScore}}</td>
-      <td *ngFor="let player of players">{{player.smStraight?.toString() || possible.smStraight?.toString()}}</td>
+      <td *ngFor="let player of players; let i=index;" (click)="acceptScore(player, 'smStraight')">
+        <span style="font-weight: bold;">{{player.scores.smStraight}}</span>
+        <span *ngIf="i === activeIdx && player.scores.smStraight === undefined" class="possible">{{yahtzee.possibleScores.smStraight}}</span>
+      </td>
     </tr>
     <tr>
       <td>
         <span>{{yahtzee.lowerSection.lgStraight.title}}</span> <span>{{yahtzee.lowerSection.lgStraight.subTitle}}</span>
       </td>
       <td>{{yahtzee.lowerSection.lgStraight.howToScore}}</td>
-      <td *ngFor="let player of players">{{player.lgStraight?.toString() || possible.lgStraight?.toString()}}</td>
+      <td *ngFor="let player of players; let i=index;" (click)="acceptScore(player, 'lgStraight')">
+        <span style="font-weight: bold;">{{player.scores.lgStraight}}</span>
+        <span *ngIf="i === activeIdx && player.scores.lgStraight === undefined" class="possible">{{yahtzee.possibleScores.lgStraight}}</span>
+      </td>
     </tr>
     <tr>
       <td>
         <span>{{yahtzee.lowerSection.yahtzee.title}}</span> <span>{{yahtzee.lowerSection.yahtzee.subTitle}}</span>
       </td>
       <td>{{yahtzee.lowerSection.yahtzee.howToScore}}</td>
-      <td *ngFor="let player of players">{{player.yahtzee?.toString() || possible.yahtzee?.toString()}}</td>
+      <td *ngFor="let player of players; let i=index;" (click)="acceptScore(player, 'yahtzee')">
+        <span style="font-weight: bold;">{{player.scores.yahtzee}}</span>
+        <span *ngIf="i === activeIdx && player.scores.yahtzee === undefined" class="possible">{{yahtzee.possibleScores.yahtzee}}</span>
+      </td>
     </tr>
     <tr>
       <td>
         <span>{{yahtzee.lowerSection.chance.title}}</span> <span>{{yahtzee.lowerSection.chance.subTitle}}</span>
       </td>
       <td>{{yahtzee.lowerSection.chance.howToScore}}</td>
-      <td *ngFor="let player of players">{{player.chance?.toString() || possible.chance?.toString()}}</td>
+      <td *ngFor="let player of players; let i=index;" (click)="acceptScore(player, 'chance')">
+        <span style="font-weight: bold;">{{player.scores.chance}}</span>
+        <span *ngIf="i === activeIdx && player.scores.chance === undefined" class="possible">{{yahtzee.possibleScores.chance}}</span>
+      </td>
     </tr>
     <tr class="header">
       <td rowspan="2">YAHTZEE BONUS</td>
       <td>X FOR EACH BONUS</td>
       <td *ngFor="let player of players">
-        <span *ngFor="let x of player.yahtzeeBonus">X</span>
+        <span *ngFor="let x of player.scores.yahtzeeBonus">X</span>
       </td>
     </tr>
     <tr>
       <td style="text-align: center;">SCORE 100 PER X</td>
-      <td *ngFor="let player of players">{{player.yahtzeeBonusScore}}</td>
+      <td *ngFor="let player of players">{{player.scores.yahtzeeBonusScore}}</td>
     </tr>
     <tr class="header">
       <td>
         <span>TOTAL</span> <span>Of Lower Section</span>
       </td>
-      <td>---></td>
-      <td *ngFor="let player of players">{{player.lowerTotal}}</td>
+      <td style="font-size: 150%;">→</td>
+      <td *ngFor="let player of players">{{player.scores.lowerTotal}}</td>
     </tr>
     <tr>
       <td>
         <span>TOTAL</span> <span>Of Upper Section</span>
       </td>
-      <td>---></td>
-      <td *ngFor="let player of players">{{player.upperTotalWithBonus}}</td>
+      <td style="font-size: 150%;">→</td>
+      <td *ngFor="let player of players">{{player.scores.upperTotalWithBonus}}</td>
     </tr>
     <tr class="header">
       <td>GRAND TOTAL</td>
-      <td>---></td>
-      <td *ngFor="let player of players">{{player.grandTotal}}</td>
+      <td style="font-size: 150%;">→</td>
+      <td *ngFor="let player of players">{{player.scores.grandTotal}}</td>
     </tr>
   </table>
-  <div style="width: 100%;">
-    <button type="button" (click)="roll()">Roll</button>
-    <div style="display: flex; justify-content: space-evenly; height: 500px; align-items: center;">
-      <div *ngFor="let die of dice" style="font-size: 150%; padding: 15px; cursor: pointer;" [style.border]="die.saved ? '3px solid green' : 'initial'" (click)="saveDie(die)">{{die.value}}</div>
+  <div class="right-side">
+    <div *ngIf="!startedGame">
+      <input type="text" placeholder="Add Player" [(ngModel)]="playerToAddName" (keyup.enter)="addPlayer()">
+      <button type="button" (click)="addPlayer()">Add</button>
+      <div>
+        <button type="button" (click)="startedGame = true">Start</button>
+      </div>
+    </div>
+    <div *ngIf="startedGame && !isGameOver">
+      <h1>{{activePlayer?.name}}'s Turn!</h1>
+      <button type="button" [disabled]="yahtzee.rolls === 3 || yahtzee.isRolling" (click)="yahtzee.rollDice()">Roll</button>
+      <div class="dice">
+        <div *ngFor="let die of yahtzee.dice" 
+          style="cursor: pointer;"
+          (click)="die.toggleSave()">
+            <img *ngIf="die.value" [ngStyle]="getTransform(die)" src="assets/dice{{die.value}}.png" [class.die-selected]="die.saved" alt="" class="die">
+        </div>
+      </div>
+      <button *ngIf="yahtzee.dice[0].value" type="button" [disabled]="yahtzee.isRolling" (click)="yahtzee.clearDiceSelection()">Clear Selection</button>
+    </div>
+    <div *ngIf="startedGame && isGameOver">
+      <h1>Good Game!</h1>
+      <h2>{{winner?.name}} is our winner with {{winner?.scores?.grandTotal}}</h2>
     </div>
   </div>
 </div>
