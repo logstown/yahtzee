@@ -156,7 +156,7 @@
     </div>
     <div *ngIf="startedGame && !isGameOver">
       <h1>{{activePlayer?.name}}'s Turn!</h1>
-      <button type="button" [disabled]="yahtzee.rolls === 3 || yahtzee.isRolling" (click)="yahtzee.rollDice()">Roll</button>
+      <button type="button" [disabled]="yahtzee.rolls === 3 || yahtzee.isRolling" (click)="rollDice()">Roll</button>
       <div class="dice">
         <div *ngFor="let die of yahtzee.dice" 
           style="cursor: pointer;"
@@ -168,7 +168,7 @@
     </div>
     <div *ngIf="startedGame && isGameOver">
       <h1>Good Game!</h1>
-      <h2>{{winner?.name}} is our winner with {{winner?.scores?.grandTotal}}</h2>
+      <h2>{{winner?.name}} is our winner with {{winner?.scores?.grandTotal}} points</h2>
     </div>
   </div>
 </div>

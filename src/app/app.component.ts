@@ -52,4 +52,18 @@ export class AppComponent implements OnInit {
   getTransform(die: Die) {
     return {transform: `rotate(${die.rotated}deg)`}
   }
+
+  async rollDice() {
+    await this.yahtzee.rollDice();
+
+    if(this.activePlayer?.scores.yahtzee === this.yahtzee.lowerSection.fullHouse.score 
+        && this.yahtzee.possibleScores.yahtzee === this.yahtzee.lowerSection.fullHouse.score) {
+          
+      this.activePlayer?.scores.yahtzeeBonus.push('x');
+
+      this.yahtzee.possibleScores.fullHouse = this.yahtzee.lowerSection.fullHouse.score
+      this.yahtzee.possibleScores.smStraight = this.yahtzee.lowerSection.smStraight.score
+      this.yahtzee.possibleScores.lgStraight = this.yahtzee.lowerSection.lgStraight.score
+    }
+  }
 }
